@@ -15,10 +15,11 @@ model Product {
   name             String
   supply           Int                @default(0)
   batch            String
-  expirationTime   DateTime?
+  expirationTime   DateTime?          @map("expiration_time")
   SupplierProducts SupplierProducts[]
+  BatchProducts    BatchProducts[]
 
-  @@map("products")
+  @@map("Products")
 }
 
 model Supplier {
@@ -26,17 +27,39 @@ model Supplier {
   name             String
   phone            Int?
   SupplierProducts SupplierProducts[]
+  Batch            Batch[]
 
-  @@map("suppliers")
+  @@map("Suppliers")
 }
 
 model SupplierProducts {
   supplier   Supplier @relation(fields: [supplierId], references: [id])
-  supplierId String
+  supplierId String   @map("supplier_id")
   product    Product  @relation(fields: [productId], references: [id])
-  productId  String
+  productId  String   @map("product_id")
   price      Decimal
 
   @@id([supplierId, productId])
-  @@map("supplierProducts")
+  @@map("SupplierProducts")
+}
+
+model Batch {
+  id            String          @id @default(uuid())
+  supplier      Supplier        @relation(fields: [supplierId], references: [id])
+  supplierId    String          @map("supplier_id")
+  arrivalDate   DateTime        @map("arrival_date")
+  BatchProducts BatchProducts[]
+
+  @@map("Batches")
+}
+
+model BatchProducts {
+  batch     Batch   @relation(fields: [batchId], references: [id])
+  batchId   String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  price     Decimal
+
+  @@id([batchId, productId])
+  @@map("BatchProducts")
 }
