@@ -1,26 +1,17 @@
-// import express, { Request, Response } from 'express';
-
-// const app = express();
-
-// app.use(express.json());
-
-// app.get('/', (req: Request, res: Response) => {
-//     return res.send("Hello World!");
-// });
-
-// app.listen(3001, () => {
-//     console.log('HTTP server running');
-// });
-
 import fastify from "fastify";
+import routes from "./routes";
+import { ZodTypeProvider, serializerCompiler, validatorCompiler } from "fastify-type-provider-zod";
 
-const app = fastify();
-// const app = fastify({logger: true});
+const app = fastify().withTypeProvider<ZodTypeProvider>();
 
+app.setValidatorCompiler(validatorCompiler);
+app.setSerializerCompiler(serializerCompiler);
 
 app.get('/', (req, res) => {
     res.send('Hello World!');
 });
+
+app.register(routes.productRoutes, { prefix: '/products' });
 
 app.listen({ port: 3001 }).then(() => {
     console.log('HTTP server running');
