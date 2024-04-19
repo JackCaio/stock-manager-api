@@ -11,7 +11,8 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
-app.register(routes.productRoutes, { prefix: '/products' });
+app.register(routes.productRoute, { prefix: '/products' });
+app.register(routes.supplierRoute, { prefix: '/supplier' });
 
 app.listen({ port: 3001 }).then(() => {
     console.log('HTTP server running');

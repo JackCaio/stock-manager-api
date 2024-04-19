@@ -25,7 +25,7 @@ model Product {
 model Supplier {
   id               String             @id @default(uuid())
   name             String
-  phone            Int?
+  phone            String?
   SupplierProducts SupplierProducts[]
   Batch            Batch[]
 

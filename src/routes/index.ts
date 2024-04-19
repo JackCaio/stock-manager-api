@@ -1,5 +1,6 @@
-import productRoutes from "./ProductRoutes"
+import { productRoute } from "./ProductRoutes";
+import { supplierRoute } from "./SupplierRoutes";
 
-const routes = { productRoutes }
+const routes = { productRoute, supplierRoute }
 
 export default routes;
