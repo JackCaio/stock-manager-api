@@ -2,12 +2,57 @@ import { FastifyInstance } from 'fastify';
 import { z } from "zod";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
 import { prisma } from '../lib/prisma';
+import { productListFormatter } from '../utils/productListFormatter';
 
 export async function productRoute(app: FastifyInstance) {
-    app.get("/", (_req, res) => {
-        res.send("bob");
-    });
+    // Search all products
+    app
+        .withTypeProvider<ZodTypeProvider>()
+        .get("/", {
+            schema: {
+                response: {
+                    200: z.object({
+                        products: z.array(z.object({
+                            name: z.string(),
+                            supply: z.number(),
+                            expirationTime: z.number().nullable(),
+                            buyingData: z.array(z.object({
+                                price: z.number().multipleOf(0.01).positive(),
+                                supplier: z.object({
+                                    name: z.string(),
+                                    phone: z.string().nullable()
+                                })
+                            }))
+                        }))
+                    })
+                }
+            }
+        }, async (_req, res) => {
+            const productList = await prisma.product.findMany({
+                select: {
+                    name: true,
+                    supply: true,
+                    expirationTime: true,
+                    SupplierProducts: {
+                        select: {
+                            price: true,
+                            supplier: {
+                                select: {
+                                    name: true,
+                                    phone: true
+                                }
+                            }
+                        },
+                    }
+                }
+            });
 
+            const products = productListFormatter(productList)
+
+            res.status(200).send({ products });
+        });
+
+    // Create product
     app
         .withTypeProvider<ZodTypeProvider>()
         .post("/", {
@@ -15,7 +60,6 @@ export async function productRoute(app: FastifyInstance) {
                 body: z.object({
                     name: z.string().min(4),
                     supply: z.number().int().nonnegative(),
-                    batch: z.string(),
                     expirationTime: z.number().int().positive().nullable()
                 }),
                 response: {
@@ -25,17 +69,13 @@ export async function productRoute(app: FastifyInstance) {
                 },
             }
         }, async (req, res) => {
-            const { name, supply, batch, expirationTime } = req.body;
-
-            const today = new Date().setHours(0, 0, 0, 0);
-            const expirationDate = expirationTime ? new Date(today).setDate(new Date().getDate() + expirationTime) : null
+            const { name, supply, expirationTime } = req.body;
 
             const product = await prisma.product.create({
                 data: {
                     name,
                     supply,
-                    batch,
-                    expirationTime: expirationDate ? new Date(expirationDate) : null
+                    expirationTime
                 }
             });
 

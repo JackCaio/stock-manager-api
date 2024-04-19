@@ -14,8 +14,7 @@ model Product {
   id               String             @id @default(uuid())
   name             String
   supply           Int                @default(0)
-  batch            String
-  expirationTime   DateTime?          @map("expiration_time")
+  expirationTime   Int?               @map("expiration_time")
   SupplierProducts SupplierProducts[]
   BatchProducts    BatchProducts[]
 
