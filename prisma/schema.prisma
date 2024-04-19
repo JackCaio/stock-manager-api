@@ -59,6 +59,7 @@ model BatchProducts {
   product   Product @relation(fields: [productId], references: [id])
   productId String
   price     Decimal
+  quantity  Int
 
   @@id([batchId, productId])
   @@map("BatchProducts")
