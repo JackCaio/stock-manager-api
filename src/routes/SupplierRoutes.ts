@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 
 export async function supplierRoute(app: FastifyInstance) {
-    // fetch all suppliers
+    // Fetch all suppliers
     app
         .withTypeProvider<ZodTypeProvider>()
         .get('/', {
@@ -30,6 +30,43 @@ export async function supplierRoute(app: FastifyInstance) {
 
             res.status(200).send({ suppliers });
         });
+
+    // Search supplier id    
+    app
+        .withTypeProvider<ZodTypeProvider>()
+        .get("/:supplierId", {
+            schema: {
+                params: z.object({
+                    supplierId: z.string().uuid()
+                }),
+                response: {
+                    200: z.object({
+                        supplier: z.object({
+                            name: z.string(),
+                            phone: z.string().nullable()
+                        })
+                    })
+                }
+            }
+        }, async (req, res) => {
+            const { supplierId } = req.params;
+
+            const supplier = await prisma.supplier.findUnique({
+                select: {
+                    name: true,
+                    phone: true
+                },
+                where: {
+                    id: supplierId
+                }
+            });
+
+            if (!supplier) {
+                throw new Error('Supplier not found');
+            }
+
+            res.status(200).send({ supplier });
+        })
 
     // Create supplier
     app

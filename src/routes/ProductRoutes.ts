@@ -5,7 +5,7 @@ import { prisma } from '../lib/prisma';
 import { productListFormatter } from '../utils/productListFormatter';
 
 export async function productRoute(app: FastifyInstance) {
-    // Search all products
+    // Fetch all products
     app
         .withTypeProvider<ZodTypeProvider>()
         .get("/", {
@@ -50,6 +50,65 @@ export async function productRoute(app: FastifyInstance) {
             const products = productListFormatter(productList)
 
             res.status(200).send({ products });
+        });
+
+    // Search product id
+    app
+        .withTypeProvider<ZodTypeProvider>()
+        .get("/:productId", {
+            schema: {
+                params: z.object({
+                    productId: z.string().uuid()
+                }),
+                response: {
+                    200: z.object({
+                        product: z.object({
+                            name: z.string(),
+                            supply: z.number(),
+                            expirationTime: z.number().nullable(),
+                            buyingData: z.array(z.object({
+                                price: z.number().multipleOf(0.01).positive(),
+                                supplier: z.object({
+                                    name: z.string(),
+                                    phone: z.string().nullable()
+                                })
+                            }))
+                        })
+                    })
+                }
+            }
+        }, async (req, res) => {
+            const { productId } = req.params;
+
+            const data = await prisma.product.findUnique({
+                select: {
+                    name: true,
+                    supply: true,
+                    expirationTime: true,
+                    SupplierProducts: {
+                        select: {
+                            price: true,
+                            supplier: {
+                                select: {
+                                    name: true,
+                                    phone: true,
+                                }
+                            }
+                        }
+                    }
+                },
+                where: {
+                    id: productId
+                }
+            });
+
+            if (!data) {
+                throw new Error('Product not found');
+            }
+
+            const [product] = productListFormatter([data]);
+
+            return res.status(200).send({ product });
         });
 
     // Create product
