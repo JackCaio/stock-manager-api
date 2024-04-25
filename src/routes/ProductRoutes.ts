@@ -5,11 +5,12 @@ import { prisma } from '../lib/prisma';
 import { productListFormatter } from '../utils/productListFormatter';
 
 export async function productRoute(app: FastifyInstance) {
-    // Fetch all products
     app
         .withTypeProvider<ZodTypeProvider>()
         .get("/", {
             schema: {
+                summary: 'Fetches all created events',
+                tags: ['Products'],
                 response: {
                     200: z.object({
                         products: z.array(z.object({
@@ -52,11 +53,12 @@ export async function productRoute(app: FastifyInstance) {
             res.status(200).send({ products });
         });
 
-    // Search product id
     app
         .withTypeProvider<ZodTypeProvider>()
         .get("/:productId", {
             schema: {
+                summary: 'Search for one product by its id',
+                tags: ['Products'],
                 params: z.object({
                     productId: z.string().uuid()
                 }),
@@ -111,11 +113,12 @@ export async function productRoute(app: FastifyInstance) {
             return res.status(200).send({ product });
         });
 
-    // Create product
     app
         .withTypeProvider<ZodTypeProvider>()
         .post("/", {
             schema: {
+                summary: 'Creates a new product',
+                tags: ['Products'],
                 body: z.object({
                     name: z.string().min(4),
                     supply: z.number().int().nonnegative(),

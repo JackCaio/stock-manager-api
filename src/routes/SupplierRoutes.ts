@@ -9,6 +9,8 @@ export async function supplierRoute(app: FastifyInstance) {
         .withTypeProvider<ZodTypeProvider>()
         .get('/', {
             schema: {
+                summary: 'Fetches all created suppliers',
+                tags: ['Sppliers'],
                 response: {
                     200: z.object({
                         suppliers: z.array(
@@ -36,6 +38,8 @@ export async function supplierRoute(app: FastifyInstance) {
         .withTypeProvider<ZodTypeProvider>()
         .get("/:supplierId", {
             schema: {
+                summary: 'Search for one supplier by its id',
+                tags: ['Sppliers'],
                 params: z.object({
                     supplierId: z.string().uuid()
                 }),
@@ -73,6 +77,8 @@ export async function supplierRoute(app: FastifyInstance) {
         .withTypeProvider<ZodTypeProvider>()
         .post('/', {
             schema: {
+                summary: 'Creates a new supplier',
+                tags: ['Sppliers'],
                 body: z.object({
                     name: z.string(),
                     phone: z.string().min(11).nullable(),
