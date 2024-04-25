@@ -10,7 +10,7 @@ export async function supplierRoute(app: FastifyInstance) {
         .get('/', {
             schema: {
                 summary: 'Fetches all created suppliers',
-                tags: ['Sppliers'],
+                tags: ['Suppliers'],
                 response: {
                     200: z.object({
                         suppliers: z.array(
@@ -39,7 +39,7 @@ export async function supplierRoute(app: FastifyInstance) {
         .get("/:supplierId", {
             schema: {
                 summary: 'Search for one supplier by its id',
-                tags: ['Sppliers'],
+                tags: ['Suppliers'],
                 params: z.object({
                     supplierId: z.string().uuid()
                 }),
@@ -78,7 +78,7 @@ export async function supplierRoute(app: FastifyInstance) {
         .post('/', {
             schema: {
                 summary: 'Creates a new supplier',
-                tags: ['Sppliers'],
+                tags: ['Suppliers'],
                 body: z.object({
                     name: z.string(),
                     phone: z.string().min(11).nullable(),
@@ -98,5 +98,34 @@ export async function supplierRoute(app: FastifyInstance) {
             });
 
             return res.status(201).send({ supplierId: supplier.id });
+        });
+
+    app
+        .withTypeProvider<ZodTypeProvider>()
+        .post('/:supplierId/products', {
+            schema: {
+                summary: 'Bulk adds products to a single supplier',
+                tags: ['Suppliers'],
+                params: z.object({
+                    supplierId: z.string().uuid()
+                }),
+                body: z.object({
+                    products: z.array(z.object({
+                        price: z.number().multipleOf(0.01).nonnegative().default(0),
+                        productId: z.string().uuid()
+                    }))
+                })
+            }
+        }, async (req, res) => {
+            const { supplierId } = req.params;
+            const { products } = req.body;
+
+            await prisma.supplierProducts.createMany({
+                data: products.map(product => {
+                    return { ...product, supplierId };
+                })
+            });
+
+            return res.status(201).send()
         });
 };
