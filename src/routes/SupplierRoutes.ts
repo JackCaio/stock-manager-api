@@ -120,6 +120,26 @@ export async function supplierRoute(app: FastifyInstance) {
             const { supplierId } = req.params;
             const { products } = req.body;
 
+            const supplier = await prisma.supplier.findUnique({
+                where: {
+                    id: supplierId
+                }
+            });
+
+            const dbProducts = await prisma.product.findMany({
+                where: {
+                    id: { in: products.map(product => product.productId) }
+                }
+            });
+
+            if (dbProducts.length < products.length) {
+                throw new Error('Some products were not found')
+            }
+
+            if (!supplier) {
+                throw new Error('Supplier not found');
+            }
+
             await prisma.supplierProducts.createMany({
                 data: products.map(product => {
                     return { ...product, supplierId };
@@ -127,5 +147,53 @@ export async function supplierRoute(app: FastifyInstance) {
             });
 
             return res.status(201).send()
+        });
+
+    app
+        .withTypeProvider<ZodTypeProvider>()
+        .patch('/:supplierId/products/:productId', {
+            schema: {
+                summary: 'Updates a suppliers price of a single product',
+                tags: ['Suppliers'],
+                params: z.object({
+                    supplierId: z.string().uuid(),
+                    productId: z.string().uuid()
+                }),
+                body: z.object({
+                    price: z.number().multipleOf(0.01).nonnegative()
+                })
+            }
+        }, async (req, res) => {
+            const { productId, supplierId } = req.params;
+            const { price } = req.body;
+
+            console.log(productId, supplierId);
+
+            try {
+                await prisma.supplierProducts.findUniqueOrThrow({
+                    where: {
+                        supplierId_productId: {
+                            supplierId,
+                            productId
+                        }
+                    }
+                });
+            } catch (error) {
+                throw new Error('Supplier/Product data not found');
+            }
+
+            await prisma.supplierProducts.update({
+                where: {
+                    supplierId_productId: {
+                        supplierId,
+                        productId
+                    }
+                },
+                data: {
+                    price
+                }
+            });
+
+            return res.status(201).send();
         });
 };
