@@ -4,7 +4,6 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma';
 
 export async function supplierRoute(app: FastifyInstance) {
-    // Fetch all suppliers
     app
         .withTypeProvider<ZodTypeProvider>()
         .get('/', {
@@ -33,7 +32,6 @@ export async function supplierRoute(app: FastifyInstance) {
             res.status(200).send({ suppliers });
         });
 
-    // Search supplier id    
     app
         .withTypeProvider<ZodTypeProvider>()
         .get("/:supplierId", {
@@ -55,24 +53,23 @@ export async function supplierRoute(app: FastifyInstance) {
         }, async (req, res) => {
             const { supplierId } = req.params;
 
-            const supplier = await prisma.supplier.findUnique({
-                select: {
-                    name: true,
-                    phone: true
-                },
-                where: {
-                    id: supplierId
-                }
-            });
+            try {
+                const supplier = await prisma.supplier.findUniqueOrThrow({
+                    select: {
+                        name: true,
+                        phone: true
+                    },
+                    where: {
+                        id: supplierId
+                    }
+                });
 
-            if (!supplier) {
+                return res.status(200).send({ supplier });
+            } catch (error) {
                 throw new Error('Supplier not found');
             }
-
-            res.status(200).send({ supplier });
         })
 
-    // Create supplier
     app
         .withTypeProvider<ZodTypeProvider>()
         .post('/', {
@@ -120,11 +117,15 @@ export async function supplierRoute(app: FastifyInstance) {
             const { supplierId } = req.params;
             const { products } = req.body;
 
-            const supplier = await prisma.supplier.findUnique({
-                where: {
-                    id: supplierId
-                }
-            });
+            try {
+                await prisma.supplier.findUniqueOrThrow({
+                    where: {
+                        id: supplierId
+                    }
+                });
+            } catch (error) {
+                throw new Error('Supplier not found');
+            }
 
             const dbProducts = await prisma.product.findMany({
                 where: {
@@ -134,10 +135,6 @@ export async function supplierRoute(app: FastifyInstance) {
 
             if (dbProducts.length < products.length) {
                 throw new Error('Some products were not found')
-            }
-
-            if (!supplier) {
-                throw new Error('Supplier not found');
             }
 
             await prisma.supplierProducts.createMany({

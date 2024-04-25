@@ -82,35 +82,35 @@ export async function productRoute(app: FastifyInstance) {
         }, async (req, res) => {
             const { productId } = req.params;
 
-            const data = await prisma.product.findUnique({
-                select: {
-                    name: true,
-                    supply: true,
-                    expirationTime: true,
-                    SupplierProducts: {
-                        select: {
-                            price: true,
-                            supplier: {
-                                select: {
-                                    name: true,
-                                    phone: true,
+            try {
+                const data = await prisma.product.findUniqueOrThrow({
+                    select: {
+                        name: true,
+                        supply: true,
+                        expirationTime: true,
+                        SupplierProducts: {
+                            select: {
+                                price: true,
+                                supplier: {
+                                    select: {
+                                        name: true,
+                                        phone: true,
+                                    }
                                 }
                             }
                         }
+                    },
+                    where: {
+                        id: productId
                     }
-                },
-                where: {
-                    id: productId
-                }
-            });
+                });
 
-            if (!data) {
+                const [product] = productListFormatter([data]);
+
+                return res.status(200).send({ product });
+            } catch (error) {
                 throw new Error('Product not found');
             }
-
-            const [product] = productListFormatter([data]);
-
-            return res.status(200).send({ product });
         });
 
     app
