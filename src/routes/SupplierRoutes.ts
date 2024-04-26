@@ -193,4 +193,72 @@ export async function supplierRoute(app: FastifyInstance) {
 
             return res.status(201).send();
         });
+
+    app
+        .withTypeProvider<ZodTypeProvider>()
+        .delete('/:supplierId/products', {
+            schema: {
+                summary: 'Bulk deletes a suppliers product data',
+                tags: ['Suppliers'],
+                params: z.object({
+                    supplierId: z.string().uuid()
+                }),
+                body: z.object({
+                    productList: z.array(z.string().uuid())
+                })
+            }
+        }, async (req, res) => {
+            const { supplierId } = req.params;
+            const { productList } = req.body;
+
+            await prisma.supplierProducts.deleteMany({
+                where: {
+                    AND: [{ supplierId }, { productId: { in: productList } }]
+                }
+            });
+
+            return res.status(200).send();
+        });
+
+    app
+        .withTypeProvider<ZodTypeProvider>()
+        .get('/:supplierId/products', {
+            schema: {
+                summary: 'Fetches a suppliers product',
+                tags: ['Suppliers'],
+                params: z.object({ supplierId: z.string().uuid() }),
+                response: {
+                    200: z.object({
+                        products: z.array(z.object({
+                            productId: z.string().uuid(),
+                            name: z.string(),
+                            price: z.number().nonnegative().multipleOf(0.01)
+                        }))
+                    })
+                }
+            }
+        }, async (req, res) => {
+            const { supplierId } = req.params;
+
+            const products = await prisma.supplierProducts.findMany({
+                where: {
+                    supplierId
+                },
+                select: {
+                    price: true,
+                    product: {
+                        select: {
+                            name: true,
+                            id: true
+                        }
+                    }
+                }
+            });
+
+            return res.status(200).send({
+                products: products.map(product => {
+                    return { price: Number(product.price), name: product.product.name, productId: product.product.id };
+                })
+            })
+        })
 };
