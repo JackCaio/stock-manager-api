@@ -143,6 +143,113 @@ export async function productRoute(app: FastifyInstance) {
 
             return res.status(201).send({ productId: product.id });
         });
+
+    app
+        .withTypeProvider<ZodTypeProvider>()
+        .put("/:productId", {
+            schema: {
+                summary: 'Updates a product`s data',
+                tags: ['Products'],
+                params: z.object({ productId: z.string().uuid() }),
+                body: z.object({
+                    name: z.string().optional(),
+                    supply: z.number().nonnegative().optional(),
+                    expirationTime: z.number().int().positive().optional()
+                })
+            }
+        }, async (req, res) => {
+            const { productId } = req.params;
+            const { name, supply, expirationTime } = req.body;
+
+            try {
+                const product = await prisma.product.findUniqueOrThrow({
+                    where: {
+                        id: productId
+                    }
+                });
+
+                await prisma.product.update({
+                    where: {
+                        id: productId
+                    },
+                    data: {
+                        name: name ?? product.name,
+                        supply: supply ?? product.supply,
+                        expirationTime: expirationTime ?? product.expirationTime
+                    }
+                });
+
+                return res.status(200).send();
+            } catch (error) {
+                throw new Error('Product not found');
+            }
+        });
+
+    app
+        .withTypeProvider<ZodTypeProvider>()
+        .delete("/:productId", {
+            schema: {
+                summary: 'Deletes a product`s data',
+                tags: ['Products'],
+                params: z.object({ productId: z.string().uuid() })
+            }
+        }, async (req, res) => {
+            const { productId } = req.params;
+
+            await prisma.product.delete({
+                where: {
+                    id: productId
+                }
+            });
+
+            return res.status(200).send()
+        });
+
+    app
+        .withTypeProvider<ZodTypeProvider>()
+        .patch("/", {
+            schema: {
+                summary: 'Bunk updates product supplies',
+                tags: ['Products'],
+                body: z.object({
+                    products: z.array(
+                        z.object({
+                            productId: z.string().uuid(),
+                            incomingSupply: z.number().int().positive()
+                        })
+                    )
+                })
+            }
+        }, async (req, res) => {
+            const { products } = req.body;
+
+            await Promise.all(
+                products.map(async (product) => {
+                    try {
+                        const data = await prisma.product.findUnique({
+                            where: {
+                                id: product.productId
+                            }
+                        });
+
+                        const supply = data?.supply ?? 0
+
+                        await prisma.product.update({
+                            where: {
+                                id: product.productId
+                            },
+                            data: {
+                                supply: product.incomingSupply + supply
+                            }
+                        });
+
+                        return res.status(200).send();
+                    } catch (error) {
+                        throw new Error('Product not found');
+                    }
+                })
+            )
+        })
 }
 
 export default productRoute;
