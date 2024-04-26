@@ -32,9 +32,9 @@ model Supplier {
 }
 
 model SupplierProducts {
-  supplier   Supplier @relation(fields: [supplierId], references: [id])
+  supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade, onUpdate: Restrict)
   supplierId String   @map("supplier_id")
-  product    Product  @relation(fields: [productId], references: [id])
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: Restrict)
   productId  String   @map("product_id")
   price      Decimal
 
@@ -44,8 +44,8 @@ model SupplierProducts {
 
 model Batch {
   id            String          @id @default(uuid())
-  supplier      Supplier        @relation(fields: [supplierId], references: [id])
-  supplierId    String          @map("supplier_id")
+  supplier      Supplier        @relation(fields: [supplierId], references: [id], onDelete: SetDefault, onUpdate: Restrict)
+  supplierId    String          @default("N/A") @map("supplier_id")
   arrivalDate   DateTime        @map("arrival_date")
   BatchProducts BatchProducts[]
 
@@ -53,9 +53,9 @@ model Batch {
 }
 
 model BatchProducts {
-  batch     Batch   @relation(fields: [batchId], references: [id])
+  batch     Batch   @relation(fields: [batchId], references: [id], onDelete: NoAction, onUpdate: Restrict)
   batchId   String
-  product   Product @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: Restrict)
   productId String
   price     Decimal
   quantity  Int
