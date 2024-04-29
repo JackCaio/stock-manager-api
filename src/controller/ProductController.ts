@@ -9,40 +9,16 @@ class ProductController {
     constructor(private service: ProductService) { }
 
     public fetchProductList = async (_req: FastifyRequest, res: FastifyReply) => {
-        const productList = await this.service.fetchList();
-
-        const products = productList.map(product => productFormatter(product));
+        const products = await this.service.fetchList();
 
         res.status(200).send({ products });
     }
 
-    public async fetchProductById(req: FastifyRequest, res: FastifyReply) {
+    public fetchProductById = async (req: FastifyRequest, res: FastifyReply) => {
         const { productId } = req.params as ProductParams;
 
         try {
-            const data = await prisma.product.findUniqueOrThrow({
-                select: {
-                    name: true,
-                    supply: true,
-                    expirationTime: true,
-                    SupplierProducts: {
-                        select: {
-                            price: true,
-                            supplier: {
-                                select: {
-                                    name: true,
-                                    phone: true,
-                                }
-                            }
-                        }
-                    }
-                },
-                where: {
-                    id: productId
-                }
-            });
-
-            const product = productFormatter(data);
+            const product = await this.service.fetchById(productId);
 
             return res.status(200).send({ product });
         } catch (error) {
@@ -50,7 +26,7 @@ class ProductController {
         }
     }
 
-    public async createProduct(req: FastifyRequest, res: FastifyReply) {
+    public createProduct = async (req: FastifyRequest, res: FastifyReply) => {
         const { name, supply, expirationTime } = req.body as ProductLoadout;
 
         const product = await prisma.product.create({
@@ -64,7 +40,7 @@ class ProductController {
         return res.status(201).send({ productId: product.id });
     }
 
-    public async updateProductData(req: FastifyRequest, res: FastifyReply) {
+    public updateProductData = async (req: FastifyRequest, res: FastifyReply) => {
         const { productId } = req.params as ProductParams;
         const { name, supply, expirationTime } = req.body as ProductLoadout;
 
@@ -92,7 +68,7 @@ class ProductController {
         }
     }
 
-    public async deleteProductData(req: FastifyRequest, res: FastifyReply) {
+    public deleteProductData = async (req: FastifyRequest, res: FastifyReply) => {
         const { productId } = req.params as ProductParams;
 
         await prisma.product.delete({
@@ -104,7 +80,7 @@ class ProductController {
         return res.status(200).send()
     }
 
-    public async supplyBulkUpdate(req: FastifyRequest, res: FastifyReply) {
+    public supplyBulkUpdate = async (req: FastifyRequest, res: FastifyReply) => {
         const { products } = req.body as BulkSupplyUpdateLoadout;
 
         await Promise.all(
@@ -133,10 +109,6 @@ class ProductController {
                 }
             })
         )
-    }
-
-    public test() {
-        console.log(this instanceof ProductController)
     }
 }
 
