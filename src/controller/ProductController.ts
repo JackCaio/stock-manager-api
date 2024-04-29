@@ -9,8 +9,7 @@ class ProductController {
     constructor(private service: ProductService) { }
 
     public fetchProductList = async (_req: FastifyRequest, res: FastifyReply) => {
-        console.log('1', this)
-        const productList = await productService.fetchList();
+        const productList = await this.service.fetchList();
 
         const products = productList.map(product => productFormatter(product));
 
