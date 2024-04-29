@@ -78,7 +78,7 @@ export async function supplierRoute(app: FastifyInstance) {
                 tags: ['Suppliers'],
                 body: z.object({
                     name: z.string(),
-                    phone: z.string().min(11).nullable(),
+                    phone: z.string().min(11).nullable().optional(),
                 }),
                 response: {
                     201: z.object({ supplierId: z.string().uuid() })
@@ -90,7 +90,7 @@ export async function supplierRoute(app: FastifyInstance) {
             const supplier = await prisma.supplier.create({
                 data: {
                     name,
-                    phone
+                    phone: phone ?? null,
                 }
             });
 
