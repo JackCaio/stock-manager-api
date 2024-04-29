@@ -1,15 +1,14 @@
 import { FastifyInstance } from 'fastify';
 import { z } from "zod";
 import { ZodTypeProvider } from "fastify-type-provider-zod";
-import { prisma } from '../lib/prisma';
-import { productListFormatter } from '../utils/productListFormatter';
+import { productController } from '../controller';
 
 export async function productRoute(app: FastifyInstance) {
     app
         .withTypeProvider<ZodTypeProvider>()
         .get("/", {
             schema: {
-                summary: 'Fetches all created events',
+                summary: 'Fetches all created products',
                 tags: ['Products'],
                 response: {
                     200: z.object({
@@ -28,30 +27,7 @@ export async function productRoute(app: FastifyInstance) {
                     })
                 }
             }
-        }, async (_req, res) => {
-            const productList = await prisma.product.findMany({
-                select: {
-                    name: true,
-                    supply: true,
-                    expirationTime: true,
-                    SupplierProducts: {
-                        select: {
-                            price: true,
-                            supplier: {
-                                select: {
-                                    name: true,
-                                    phone: true
-                                }
-                            }
-                        },
-                    }
-                }
-            });
-
-            const products = productListFormatter(productList)
-
-            res.status(200).send({ products });
-        });
+        }, productController.fetchProductList);
 
     app
         .withTypeProvider<ZodTypeProvider>()
@@ -79,39 +55,7 @@ export async function productRoute(app: FastifyInstance) {
                     })
                 }
             }
-        }, async (req, res) => {
-            const { productId } = req.params;
-
-            try {
-                const data = await prisma.product.findUniqueOrThrow({
-                    select: {
-                        name: true,
-                        supply: true,
-                        expirationTime: true,
-                        SupplierProducts: {
-                            select: {
-                                price: true,
-                                supplier: {
-                                    select: {
-                                        name: true,
-                                        phone: true,
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    where: {
-                        id: productId
-                    }
-                });
-
-                const [product] = productListFormatter([data]);
-
-                return res.status(200).send({ product });
-            } catch (error) {
-                throw new Error('Product not found');
-            }
-        });
+        }, productController.fetchProductById);
 
     app
         .withTypeProvider<ZodTypeProvider>()
@@ -130,19 +74,7 @@ export async function productRoute(app: FastifyInstance) {
                     }),
                 },
             }
-        }, async (req, res) => {
-            const { name, supply, expirationTime } = req.body;
-
-            const product = await prisma.product.create({
-                data: {
-                    name,
-                    supply,
-                    expirationTime
-                }
-            });
-
-            return res.status(201).send({ productId: product.id });
-        });
+        }, productController.createProduct);
 
     app
         .withTypeProvider<ZodTypeProvider>()
@@ -157,33 +89,7 @@ export async function productRoute(app: FastifyInstance) {
                     expirationTime: z.number().int().positive().optional()
                 })
             }
-        }, async (req, res) => {
-            const { productId } = req.params;
-            const { name, supply, expirationTime } = req.body;
-
-            try {
-                const product = await prisma.product.findUniqueOrThrow({
-                    where: {
-                        id: productId
-                    }
-                });
-
-                await prisma.product.update({
-                    where: {
-                        id: productId
-                    },
-                    data: {
-                        name: name ?? product.name,
-                        supply: supply ?? product.supply,
-                        expirationTime: expirationTime ?? product.expirationTime
-                    }
-                });
-
-                return res.status(200).send();
-            } catch (error) {
-                throw new Error('Product not found');
-            }
-        });
+        }, productController.updateProductData);
 
     app
         .withTypeProvider<ZodTypeProvider>()
@@ -193,17 +99,7 @@ export async function productRoute(app: FastifyInstance) {
                 tags: ['Products'],
                 params: z.object({ productId: z.string().uuid() })
             }
-        }, async (req, res) => {
-            const { productId } = req.params;
-
-            await prisma.product.delete({
-                where: {
-                    id: productId
-                }
-            });
-
-            return res.status(200).send()
-        });
+        }, productController.deleteProductData);
 
     app
         .withTypeProvider<ZodTypeProvider>()
@@ -220,36 +116,7 @@ export async function productRoute(app: FastifyInstance) {
                     )
                 })
             }
-        }, async (req, res) => {
-            const { products } = req.body;
-
-            await Promise.all(
-                products.map(async (product) => {
-                    try {
-                        const data = await prisma.product.findUnique({
-                            where: {
-                                id: product.productId
-                            }
-                        });
-
-                        const supply = data?.supply ?? 0
-
-                        await prisma.product.update({
-                            where: {
-                                id: product.productId
-                            },
-                            data: {
-                                supply: product.incomingSupply + supply
-                            }
-                        });
-
-                        return res.status(200).send();
-                    } catch (error) {
-                        throw new Error('Product not found');
-                    }
-                })
-            )
-        })
+        }, productController.supplyBulkUpdate)
 }
 
 export default productRoute;

@@ -164,8 +164,6 @@ export async function supplierRoute(app: FastifyInstance) {
             const { productId, supplierId } = req.params;
             const { price } = req.body;
 
-            console.log(productId, supplierId);
-
             try {
                 await prisma.supplierProducts.findUniqueOrThrow({
                     where: {

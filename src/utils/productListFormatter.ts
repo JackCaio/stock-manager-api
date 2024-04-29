@@ -8,31 +8,29 @@ type SupplierProducts = {
     supplier: Supplier
 }
 
-type ProductList = {
-    SupplierProducts: SupplierProducts[],
-    name: string,
-    supply: number,
-    expirationTime: number | null
-}
-
 type buyingData = {
     price: number,
     supplier: Supplier
 }
 
-type ProductListFormatted = {
+type FormattedProductData = {
     buyingData: buyingData[],
     name: string,
     supply: number,
     expirationTime: number | null
 }
 
-export function productListFormatter(list: ProductList[]): ProductListFormatted[] {
-    return list.map((products) => {
-        const { SupplierProducts, ...product } = products;
-        const buyingData = SupplierProducts.map((supplierProduct) => {
-            return { price: Number(supplierProduct.price), supplier: supplierProduct.supplier }
-        });
-        return { ...product, buyingData }
+interface DatabaseProduct {
+    SupplierProducts: SupplierProducts[],
+    name: string,
+    supply: number,
+    expirationTime: number | null
+}
+
+export function productFormatter(productData: DatabaseProduct): FormattedProductData {
+    const { SupplierProducts, ...product } = productData;
+    const buyingData = SupplierProducts.map((supplierProduct) => {
+        return { price: Number(supplierProduct.price), supplier: supplierProduct.supplier }
     });
-};
+    return { ...product, buyingData }
+}
