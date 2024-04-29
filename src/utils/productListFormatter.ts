@@ -1,31 +1,4 @@
-type Supplier = {
-    name: string,
-    phone: string | null
-}
-
-type SupplierProducts = {
-    price: object,
-    supplier: Supplier
-}
-
-type buyingData = {
-    price: number,
-    supplier: Supplier
-}
-
-type FormattedProductData = {
-    buyingData: buyingData[],
-    name: string,
-    supply: number,
-    expirationTime: number | null
-}
-
-interface DatabaseProduct {
-    SupplierProducts: SupplierProducts[],
-    name: string,
-    supply: number,
-    expirationTime: number | null
-}
+import { DatabaseProduct, FormattedProductData } from "../interface/Product";
 
 export function productFormatter(productData: DatabaseProduct): FormattedProductData {
     const { SupplierProducts, ...product } = productData;
