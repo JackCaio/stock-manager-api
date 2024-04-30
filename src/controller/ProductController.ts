@@ -1,9 +1,7 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { prisma } from '../lib/prisma';
-import { productFormatter } from '../utils/productListFormatter';
-import { BulkSupplyUpdateLoadout, ProductLoadout, ProductParams } from '../interface/Product';
+import { CreateLoadout, ProductParams, SupplyUpdateLoadout } from '../interface/Product';
 import ProductService from '../service/ProductService';
-import { productService } from '../service';
 
 class ProductController {
     constructor(private service: ProductService) { }
@@ -18,7 +16,7 @@ class ProductController {
         const { productId } = req.params as ProductParams;
 
         try {
-            const product = await this.service.fetchById(productId);
+            const product = await this.service.fetchId(productId);
 
             return res.status(200).send({ product });
         } catch (error) {
@@ -27,45 +25,21 @@ class ProductController {
     }
 
     public createProduct = async (req: FastifyRequest, res: FastifyReply) => {
-        const { name, supply, expirationTime } = req.body as ProductLoadout;
+        const { name, supply, expirationTime } = req.body as CreateLoadout;
 
-        const product = await prisma.product.create({
-            data: {
-                name,
-                supply,
-                expirationTime
-            }
-        });
+        const product = await this.service.create(name, supply, expirationTime);
 
         return res.status(201).send({ productId: product.id });
     }
 
     public updateProductData = async (req: FastifyRequest, res: FastifyReply) => {
         const { productId } = req.params as ProductParams;
-        const { name, supply, expirationTime } = req.body as ProductLoadout;
+        const { name, supply, expirationTime } = req.body as CreateLoadout;
 
-        try {
-            const product = await prisma.product.findUniqueOrThrow({
-                where: {
-                    id: productId
-                }
-            });
+        await this.service.validateId(productId);
+        await this.service.update(productId, { name, supply, expirationTime });
 
-            await prisma.product.update({
-                where: {
-                    id: productId
-                },
-                data: {
-                    name: name ?? product.name,
-                    supply: supply ?? product.supply,
-                    expirationTime: expirationTime ?? product.expirationTime
-                }
-            });
-
-            return res.status(200).send();
-        } catch (error) {
-            throw new Error('Product not found');
-        }
+        res.status(200).send();
     }
 
     public deleteProductData = async (req: FastifyRequest, res: FastifyReply) => {
@@ -81,34 +55,16 @@ class ProductController {
     }
 
     public supplyBulkUpdate = async (req: FastifyRequest, res: FastifyReply) => {
-        const { products } = req.body as BulkSupplyUpdateLoadout;
+        const { products } = req.body as { products: SupplyUpdateLoadout[] };
 
         await Promise.all(
             products.map(async (product) => {
-                try {
-                    const data = await prisma.product.findUnique({
-                        where: {
-                            id: product.productId
-                        }
-                    });
-
-                    const supply = data?.supply ?? 0
-
-                    await prisma.product.update({
-                        where: {
-                            id: product.productId
-                        },
-                        data: {
-                            supply: product.incomingSupply + supply
-                        }
-                    });
-
-                    return res.status(200).send();
-                } catch (error) {
-                    throw new Error('Product not found');
-                }
+                const data = await this.service.fetchId(product.productId);
+                await this.service.update(product.productId, { supply: data.supply + product.incomingSupply });
             })
-        )
+        );
+
+        return res.status(200).send();
     }
 }
 
