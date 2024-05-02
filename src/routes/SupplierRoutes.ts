@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma';
+import { supplierController } from '../controller';
 
 export async function supplierRoute(app: FastifyInstance) {
     app
@@ -21,16 +22,7 @@ export async function supplierRoute(app: FastifyInstance) {
                     })
                 }
             },
-        }, async (_req, res) => {
-            const suppliers = await prisma.supplier.findMany({
-                select: {
-                    name: true,
-                    phone: true
-                }
-            });
-
-            res.status(200).send({ suppliers });
-        });
+        }, supplierController.fetchSupplierList);
 
     app
         .withTypeProvider<ZodTypeProvider>()
@@ -50,25 +42,7 @@ export async function supplierRoute(app: FastifyInstance) {
                     })
                 }
             }
-        }, async (req, res) => {
-            const { supplierId } = req.params;
-
-            try {
-                const supplier = await prisma.supplier.findUniqueOrThrow({
-                    select: {
-                        name: true,
-                        phone: true
-                    },
-                    where: {
-                        id: supplierId
-                    }
-                });
-
-                return res.status(200).send({ supplier });
-            } catch (error) {
-                throw new Error('Supplier not found');
-            }
-        })
+        }, supplierController.fetchSupplierById);
 
     app
         .withTypeProvider<ZodTypeProvider>()
@@ -84,18 +58,7 @@ export async function supplierRoute(app: FastifyInstance) {
                     201: z.object({ supplierId: z.string().uuid() })
                 }
             }
-        }, async (req, res) => {
-            const { name, phone } = req.body;
-
-            const supplier = await prisma.supplier.create({
-                data: {
-                    name,
-                    phone: phone ?? null,
-                }
-            });
-
-            return res.status(201).send({ supplierId: supplier.id });
-        });
+        }, supplierController.createSupplier);
 
     app
         .withTypeProvider<ZodTypeProvider>()

@@ -1,3 +1,5 @@
+import { Supplier, SupplierProducts } from "../Supplier"
+
 export interface ProductParams {
     productId: string
 }
@@ -17,16 +19,6 @@ export interface UpdateLoadout {
 export interface SupplyUpdateLoadout {
     productId: string,
     incomingSupply: number
-}
-
-type Supplier = {
-    name: string,
-    phone: string | null
-}
-
-type SupplierProducts = {
-    price: object,
-    supplier: Supplier
 }
 
 type buyingData = {
