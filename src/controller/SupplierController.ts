@@ -1,9 +1,10 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import SupplierService from "../service/SupplierService";
 import { Supplier, SupplierParams } from "../interface/Supplier";
+import { ValidationService } from "../service/ValidationService";
 
 class SupplierController {
-    constructor(private service: SupplierService) { }
+    constructor(private service: SupplierService, private validator: ValidationService) { }
 
     public fetchSupplierList = async (_req: FastifyRequest, res: FastifyReply) => {
         const suppliers = await this.service.fetchList()

@@ -28,20 +28,6 @@ class ProductService {
         return list.map(product => productFormatter(product))
     }
 
-    public validateId = async (productId: string) => {
-        try {
-            await this.prisma.product.findUniqueOrThrow({
-                where: {
-                    id: productId
-                }
-            });
-
-            return true;
-        } catch (error) {
-            throw new Error('Product not found');
-        }
-    }
-
     public fetchId = async (productId: string) => {
         const data = await this.prisma.product.findUniqueOrThrow({
             select: {

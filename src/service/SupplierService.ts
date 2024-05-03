@@ -12,20 +12,6 @@ class SupplierService {
         });
     }
 
-    public validateId = async (supplierId: string) => {
-        try {
-            await this.prisma.supplier.findUniqueOrThrow({
-                where: {
-                    id: supplierId
-                }
-            });
-
-            return true;
-        } catch (error) {
-            throw new Error('Supplier not found');
-        }
-    }
-
     public fetchById = (supplierId: string) => {
         return this.prisma.supplier.findUniqueOrThrow({
             select: {

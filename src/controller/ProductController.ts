@@ -2,9 +2,10 @@ import { FastifyReply, FastifyRequest } from 'fastify';
 import { prisma } from '../lib/prisma';
 import { CreateLoadout, ProductParams, SupplyUpdateLoadout } from '../interface/Product';
 import ProductService from '../service/ProductService';
+import { ValidationService } from '../service/ValidationService';
 
 class ProductController {
-    constructor(private service: ProductService) { }
+    constructor(private service: ProductService, private validator: ValidationService) { }
 
     public fetchProductList = async (_req: FastifyRequest, res: FastifyReply) => {
         const products = await this.service.fetchList();
@@ -36,7 +37,8 @@ class ProductController {
         const { productId } = req.params as ProductParams;
         const { name, supply, expirationTime } = req.body as CreateLoadout;
 
-        await this.service.validateId(productId);
+        // await this.service.validateId(productId);
+        await this.validator.validateProduct(productId);
         await this.service.update(productId, { name, supply, expirationTime });
 
         res.status(200).send();
