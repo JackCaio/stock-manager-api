@@ -76,38 +76,7 @@ export async function supplierRoute(app: FastifyInstance) {
                     }))
                 })
             }
-        }, async (req, res) => {
-            const { supplierId } = req.params;
-            const { products } = req.body;
-
-            try {
-                await prisma.supplier.findUniqueOrThrow({
-                    where: {
-                        id: supplierId
-                    }
-                });
-            } catch (error) {
-                throw new Error('Supplier not found');
-            }
-
-            const dbProducts = await prisma.product.findMany({
-                where: {
-                    id: { in: products.map(product => product.productId) }
-                }
-            });
-
-            if (dbProducts.length < products.length) {
-                throw new Error('Some products were not found')
-            }
-
-            await prisma.supplierProducts.createMany({
-                data: products.map(product => {
-                    return { ...product, supplierId };
-                })
-            });
-
-            return res.status(201).send()
-        });
+        }, supplierController.addSuplierProducts);
 
     app
         .withTypeProvider<ZodTypeProvider>()
@@ -123,37 +92,7 @@ export async function supplierRoute(app: FastifyInstance) {
                     price: z.number().multipleOf(0.01).nonnegative()
                 })
             }
-        }, async (req, res) => {
-            const { productId, supplierId } = req.params;
-            const { price } = req.body;
-
-            try {
-                await prisma.supplierProducts.findUniqueOrThrow({
-                    where: {
-                        supplierId_productId: {
-                            supplierId,
-                            productId
-                        }
-                    }
-                });
-            } catch (error) {
-                throw new Error('Supplier/Product data not found');
-            }
-
-            await prisma.supplierProducts.update({
-                where: {
-                    supplierId_productId: {
-                        supplierId,
-                        productId
-                    }
-                },
-                data: {
-                    price
-                }
-            });
-
-            return res.status(201).send();
-        });
+        }, supplierController.updateProductPrice);
 
     app
         .withTypeProvider<ZodTypeProvider>()
@@ -168,18 +107,7 @@ export async function supplierRoute(app: FastifyInstance) {
                     productList: z.array(z.string().uuid())
                 })
             }
-        }, async (req, res) => {
-            const { supplierId } = req.params;
-            const { productList } = req.body;
-
-            await prisma.supplierProducts.deleteMany({
-                where: {
-                    AND: [{ supplierId }, { productId: { in: productList } }]
-                }
-            });
-
-            return res.status(200).send();
-        });
+        }, supplierController.bulkDeleteSupplierProduct);
 
     app
         .withTypeProvider<ZodTypeProvider>()
@@ -198,28 +126,5 @@ export async function supplierRoute(app: FastifyInstance) {
                     })
                 }
             }
-        }, async (req, res) => {
-            const { supplierId } = req.params;
-
-            const products = await prisma.supplierProducts.findMany({
-                where: {
-                    supplierId
-                },
-                select: {
-                    price: true,
-                    product: {
-                        select: {
-                            name: true,
-                            id: true
-                        }
-                    }
-                }
-            });
-
-            return res.status(200).send({
-                products: products.map(product => {
-                    return { price: Number(product.price), name: product.product.name, productId: product.product.id };
-                })
-            })
-        })
+        }, supplierController.fetchSupplierProducts)
 };

@@ -26,4 +26,19 @@ export class ValidationService {
             throw new Error('Product not found');
         }
     }
+
+    public validateSupplierProduct = async (productId: string, supplierId: string) => {
+        try {
+            this.prisma.supplierProducts.findUniqueOrThrow({
+                where: {
+                    supplierId_productId: {
+                        productId,
+                        supplierId
+                    }
+                }
+            });
+        } catch (error) {
+            throw new Error('Supplier does not sell this product');
+        }
+    }
 }

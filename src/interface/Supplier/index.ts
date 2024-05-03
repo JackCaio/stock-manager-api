@@ -11,3 +11,12 @@ export interface SupplierProducts {
 export interface SupplierParams {
     supplierId: string
 }
+
+export interface SupplierProductsParams extends SupplierParams {
+    productId: string
+}
+
+export interface SupplierProductsLoadout {
+    price: number,
+    productId: string
+}
