@@ -30,6 +30,7 @@ app.register(fastifySwaggerUi, { routePrefix: '/docs' });
 
 app.register(routes.productRoute, { prefix: '/product' });
 app.register(routes.supplierRoute, { prefix: '/supplier' });
+app.register(routes.batchRoute, { prefix: '/batch' });
 
 app.listen({ port: 3001, host: '0.0.0.0' }).then(() => {
     console.log('HTTP server running');

@@ -118,5 +118,3 @@ export async function productRoute(app: FastifyInstance) {
             }
         }, productController.supplyBulkUpdate)
 }
-
-export default productRoute;
