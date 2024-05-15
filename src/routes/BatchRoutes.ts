@@ -10,6 +10,14 @@ export async function batchRoute(app: FastifyInstance) {
             schema: {
                 summary: 'Fetches list of all batches',
                 tags: ['Batch'],
+                response: {
+                    200: z.object({
+                        id: z.string().uuid(),
+                        arrivalDate: z.date(),
+                        supplierId: z.string().uuid(),
+                        price: z.number().nonnegative()
+                    })
+                }
             }
         }, batchController.fetchList);
 
