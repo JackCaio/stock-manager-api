@@ -15,6 +15,7 @@ export interface DatabaseBatchPrice {
     supplierId: string,
     arrivalDate: Date,
     BatchProducts: {
-        price: object
+        price: object,
+        quantity: number
     }[]
 }

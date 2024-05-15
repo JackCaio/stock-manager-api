@@ -3,7 +3,7 @@ import { DatabaseBatchPrice } from "../interface/Batch";
 export function batchListFormatter(dbBatchList: DatabaseBatchPrice[]) {
     return dbBatchList.map((batch) => {
         const price = batch.BatchProducts.reduce((acc, cur) => {
-            return acc + Number(cur.price);
+            return acc + (Number(cur.price) * Number(cur.quantity));
         }, 0);
 
         return {

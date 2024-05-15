@@ -11,7 +11,8 @@ class BatchService {
                 supplierId: true,
                 BatchProducts: {
                     select: {
-                        price: true
+                        price: true,
+                        quantity: true
                     }
                 }
             }
