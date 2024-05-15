@@ -5,4 +5,4 @@ import SupplierController from "./SupplierController";
 
 export const productController = new ProductController(productService, validator);
 export const supplierController = new SupplierController(supplierService, validator);
-export const batchController = new BatchController(batchService, validator);
+export const batchController = new BatchController(batchService, productService, validator);

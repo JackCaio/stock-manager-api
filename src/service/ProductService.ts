@@ -73,6 +73,19 @@ class ProductService {
         });
     }
 
+    public updateQuantity = (productId: string, quantity: number) => {
+        return this.prisma.product.update({
+            data: {
+                supply: {
+                    increment: quantity
+                }
+            },
+            where: {
+                id: productId
+            }
+        })
+    }
+
     public delete = (productId: string) => {
         return this.prisma.product.delete({
             where: {
