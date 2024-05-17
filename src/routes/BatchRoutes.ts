@@ -39,7 +39,8 @@ export async function batchRoute(app: FastifyInstance) {
                             products: z.array(z.object({
                                 name: z.string(),
                                 price: z.coerce.number(),
-                                quantity: z.number()
+                                quantity: z.number(),
+                                sotckQuantity: z.number()
                             }))
                         })
                     })

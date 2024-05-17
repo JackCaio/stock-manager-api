@@ -17,11 +17,12 @@ export function batchListFormatter(dbBatchList: DatabaseBatchPrice[]) {
 
 export function batchDataFormatter(batchData: BatchData) {
     const { BatchProducts, supplier, ...baseData } = batchData;
-    const products = BatchProducts.map(({ product, price, quantity }) => {
+    const products = BatchProducts.map(({ product, price, quantity, stockQuantity }) => {
         return {
             name: product.name,
             price,
-            quantity
+            quantity,
+            stockQuantity
         }
     });
 

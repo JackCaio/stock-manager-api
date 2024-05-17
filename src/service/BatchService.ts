@@ -33,6 +33,7 @@ class BatchService {
                     select: {
                         price: true,
                         quantity: true,
+                        stockQuantity: true,
                         product: {
                             select: {
                                 name: true
@@ -53,7 +54,7 @@ class BatchService {
                 supplierId,
                 arrivalDate
             }
-        })
+        });
     }
 
     public createBatchProduct = (batchId: string, productId: string, price: number, quantity: number) => {
@@ -62,9 +63,10 @@ class BatchService {
                 batchId,
                 productId,
                 price,
-                quantity
+                quantity,
+                stockQuantity: quantity
             }
-        })
+        });
     }
 }
 

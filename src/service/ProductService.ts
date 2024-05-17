@@ -86,6 +86,35 @@ class ProductService {
         })
     }
 
+    public removeStockProduct = (productId: string, batchId: string, quantity: number) => {
+        const productUpdate = this.prisma.product.update({
+            data: {
+                supply: {
+                    increment: quantity > 0 ? (quantity * -1) : quantity,
+                },
+            },
+            where: {
+                id: productId,
+            },
+        });
+
+        const batchProductUpdate = this.prisma.batchProducts.update({
+            data: {
+                stockQuantity: {
+                    increment: quantity > 0 ? (quantity * -1) : quantity,
+                },
+            },
+            where: {
+                batchId_productId: {
+                    batchId,
+                    productId,
+                },
+            },
+        });
+
+        return Promise.all([productUpdate, batchProductUpdate]);
+    }
+
     public delete = (productId: string) => {
         return this.prisma.product.delete({
             where: {

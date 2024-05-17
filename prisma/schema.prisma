@@ -53,12 +53,13 @@ model Batch {
 }
 
 model BatchProducts {
-  batch     Batch   @relation(fields: [batchId], references: [id], onDelete: NoAction, onUpdate: Restrict)
-  batchId   String
-  product   Product @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: Restrict)
-  productId String
-  price     Decimal
-  quantity  Int
+  batch         Batch   @relation(fields: [batchId], references: [id], onDelete: NoAction, onUpdate: Restrict)
+  batchId       String
+  product       Product @relation(fields: [productId], references: [id], onDelete: NoAction, onUpdate: Restrict)
+  productId     String
+  price         Decimal
+  quantity      Int     @default(0)
+  stockQuantity Int     @default(0)
 
   @@id([batchId, productId])
   @@map("BatchProducts")

@@ -116,5 +116,21 @@ export async function productRoute(app: FastifyInstance) {
                     )
                 })
             }
-        }, productController.supplyBulkUpdate)
+        }, productController.supplyBulkUpdate);
+
+    app
+        .withTypeProvider<ZodTypeProvider>()
+        .patch("/:productId/batch/:batchId", {
+            schema: {
+                summary: 'Remove a product from stock',
+                tags: ['Products'],
+                params: z.object({
+                    productId: z.string().uuid(),
+                    batchId: z.string().uuid()
+                }),
+                body: z.object({
+                    quantity: z.number().nonnegative(),
+                })
+            }
+        }, productController.removeStockProduct);
 }
