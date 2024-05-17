@@ -19,3 +19,18 @@ export interface DatabaseBatchPrice {
         quantity: number
     }[]
 }
+
+export interface BatchData {
+    id: string;
+    arrivalDate: Date;
+    supplier: {
+        name: string;
+    };
+    BatchProducts: {
+        price: object;
+        product: {
+            name: string;
+        };
+        quantity: number;
+    }[];
+}

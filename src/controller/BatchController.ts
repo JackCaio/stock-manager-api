@@ -3,7 +3,7 @@ import BatchService from "../service/BatchService";
 import { ValidationService } from "../service/ValidationService";
 import { BatchLoadout } from "../interface/Batch";
 import ProductService from "../service/ProductService";
-import { batchListFormatter } from "../utils/batchListFormatter";
+import { batchDataFormatter, batchListFormatter } from "../utils/batchListFormatter";
 
 class BatchController {
     constructor(private batchService: BatchService, private productService: ProductService, private validator: ValidationService) { }
@@ -14,6 +14,19 @@ class BatchController {
         const resultList = batchListFormatter(dbBatchList);
 
         return res.status(200).send(resultList);
+    }
+
+    public fetchId = async (req: FastifyRequest, res: FastifyReply) => {
+        const { batchId } = req.params as { batchId: string };
+
+        const data = await this.batchService.fetchId(batchId);
+
+        if (!data) {
+            throw new Error('Batch not found!');
+        }
+        const batchData = batchDataFormatter(data);
+
+        res.status(200).send({ batchData })
     }
 
     public createBatch = async (req: FastifyRequest, res: FastifyReply) => {

@@ -9,7 +9,7 @@ export async function batchRoute(app: FastifyInstance) {
         .get("/", {
             schema: {
                 summary: 'Fetches list of all batches',
-                tags: ['Batch'],
+                tags: ['Batches'],
                 response: {
                     200: z.array(z.object({
                         id: z.string().uuid(),
@@ -23,10 +23,36 @@ export async function batchRoute(app: FastifyInstance) {
 
     app
         .withTypeProvider<ZodTypeProvider>()
+        .get("/:batchId", {
+            schema: {
+                summary: 'Fetches data of a batch by its id',
+                tags: ['Batches'],
+                params: z.object({
+                    batchId: z.string().uuid()
+                }),
+                response: {
+                    200: z.object({
+                        batchData: z.object({
+                            id: z.string().uuid(),
+                            supplier: z.string(),
+                            arrivalDate: z.date(),
+                            products: z.array(z.object({
+                                name: z.string(),
+                                price: z.coerce.number(),
+                                quantity: z.number()
+                            }))
+                        })
+                    })
+                }
+            }
+        }, batchController.fetchId);
+
+    app
+        .withTypeProvider<ZodTypeProvider>()
         .post("/", {
             schema: {
-                summary: 'Create new Batch with products',
-                tags: ['Batch'],
+                summary: 'Create new batch with products',
+                tags: ['Batches'],
                 body: z.object({
                     supplierId: z.string().uuid(),
                     arrivalDate: z.coerce.date().optional(),

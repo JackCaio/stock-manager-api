@@ -19,6 +19,34 @@ class BatchService {
         });
     }
 
+    public fetchId = (batchId: string) => {
+        return this.prisma.batch.findUnique({
+            select: {
+                id: true,
+                supplier: {
+                    select: {
+                        name: true
+                    }
+                },
+                arrivalDate: true,
+                BatchProducts: {
+                    select: {
+                        price: true,
+                        quantity: true,
+                        product: {
+                            select: {
+                                name: true
+                            }
+                        }
+                    }
+                }
+            },
+            where: {
+                id: batchId
+            }
+        });
+    }
+
     public createBatch = (supplierId: string, arrivalDate: Date) => {
         return this.prisma.batch.create({
             data: {

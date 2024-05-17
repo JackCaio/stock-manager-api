@@ -1,4 +1,4 @@
-import { DatabaseBatchPrice } from "../interface/Batch";
+import { BatchData, DatabaseBatchPrice } from "../interface/Batch";
 
 export function batchListFormatter(dbBatchList: DatabaseBatchPrice[]) {
     return dbBatchList.map((batch) => {
@@ -13,4 +13,21 @@ export function batchListFormatter(dbBatchList: DatabaseBatchPrice[]) {
             price
         }
     })
+}
+
+export function batchDataFormatter(batchData: BatchData) {
+    const { BatchProducts, supplier, ...baseData } = batchData;
+    const products = BatchProducts.map(({ product, price, quantity }) => {
+        return {
+            name: product.name,
+            price,
+            quantity
+        }
+    });
+
+    return {
+        ...baseData,
+        supplier: supplier.name,
+        products
+    };
 }
