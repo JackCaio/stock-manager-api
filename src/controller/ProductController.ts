@@ -15,13 +15,10 @@ class ProductController {
     public fetchProductById = async (req: FastifyRequest, res: FastifyReply) => {
         const { productId } = req.params as ProductParams;
 
-        try {
-            const product = await this.service.fetchId(productId);
+        await this.validator.validateProduct(productId);
+        const product = await this.service.fetchId(productId);
 
-            return res.status(200).send({ product });
-        } catch (error) {
-            throw new Error('Product not found');
-        }
+        return res.status(200).send({ product });
     }
 
     public createProduct = async (req: FastifyRequest, res: FastifyReply) => {

@@ -15,13 +15,10 @@ class SupplierController {
     public fetchSupplierById = async (req: FastifyRequest, res: FastifyReply) => {
         const { supplierId } = req.params as SupplierParams;
 
-        try {
-            const supplier = await this.service.fetchById(supplierId);
+        await this.validator.validateSupplier(supplierId);
+        const supplier = await this.service.fetchById(supplierId);
 
-            return res.status(200).send({ supplier });
-        } catch (error) {
-            throw new Error('Supplier not found');
-        }
+        return res.status(200).send({ supplier });
     }
 
     public createSupplier = async (req: FastifyRequest, res: FastifyReply) => {

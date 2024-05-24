@@ -125,5 +125,5 @@ export async function supplierRoute(app: FastifyInstance) {
                     })
                 }
             }
-        }, supplierController.fetchSupplierProducts)
+        }, supplierController.fetchSupplierProducts);
 };
