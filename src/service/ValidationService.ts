@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import { BadRequest } from "../routes/_errors/bad-request";
 
 export class ValidationService {
     constructor(private prisma: PrismaClient) { }
@@ -11,7 +12,7 @@ export class ValidationService {
                 }
             });
         } catch (error) {
-            throw new Error('Supplier not found!');
+            throw new BadRequest(404, 'Supplier not found!');
         }
     }
 
@@ -23,7 +24,7 @@ export class ValidationService {
                 }
             });
         } catch (error) {
-            throw new Error('Product not found');
+            throw new BadRequest(404, 'Product not found');
         }
     }
 
@@ -38,7 +39,7 @@ export class ValidationService {
                 }
             });
         } catch (error) {
-            throw new Error('Supplier does not sell this product');
+            throw new BadRequest(400, 'Supplier does not sell this product');
         }
     }
 
@@ -50,7 +51,7 @@ export class ValidationService {
                 }
             });
         } catch (error) {
-            throw new Error('Batch not found!');
+            throw new BadRequest(404, 'Batch not found!');
         }
     }
 
@@ -66,14 +67,23 @@ export class ValidationService {
                 }
             });
         } catch (error) {
-            throw new Error("Batch doesn't have this product");
+            throw new BadRequest(400, "Batch doesn't have this product");
         }
     }
 
     public validateBatchProductQuantity = async (batchId: string, productId: string, quantity: number) => {
         const product = await this.validateBatchProduct(batchId, productId);
         if (product.quantity <= quantity) {
-            throw new Error("Batch doesn't have this ammount of products");
+            throw new BadRequest(400, "Batch doesn't have this ammount of products");
+        }
+    }
+
+    public validateBatchArrivalDate = (arrivalDate: Date) => {
+        const today = new Date();
+        arrivalDate.setHours(0, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
+        if (arrivalDate > today) {
+            throw new BadRequest(400, 'Cant register a batch that was not delivered');
         }
     }
 }

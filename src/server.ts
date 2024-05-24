@@ -4,6 +4,7 @@ import { ZodTypeProvider, jsonSchemaTransform, serializerCompiler, validatorComp
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
 import fastifyCors from "@fastify/cors";
+import { errorHandler } from "./error-handler";
 
 const app = fastify().withTypeProvider<ZodTypeProvider>();
 
@@ -11,7 +12,7 @@ app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
 
 app.register(fastifyCors, {
-    origin: process.env.FRONTEND_URL,
+    origin: process.env.FRONTEND_URL || 'http://localhost',
 });
 
 app.register(fastifySwagger, {
@@ -31,6 +32,8 @@ app.register(fastifySwaggerUi, { routePrefix: '/docs' });
 app.register(routes.productRoute, { prefix: '/product' });
 app.register(routes.supplierRoute, { prefix: '/supplier' });
 app.register(routes.batchRoute, { prefix: '/batch' });
+
+app.setErrorHandler(errorHandler);
 
 app.listen({ port: 3001, host: '0.0.0.0' }).then(() => {
     console.log('HTTP server running');

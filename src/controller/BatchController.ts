@@ -1,9 +1,10 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import BatchService from "../service/BatchService";
 import { ValidationService } from "../service/ValidationService";
-import { BatchLoadout } from "../interface/Batch";
+import { BatchData, BatchLoadout } from "../interface/Batch";
 import ProductService from "../service/ProductService";
 import { batchDataFormatter, batchListFormatter } from "../utils/batchListFormatter";
+import { BadRequest } from "../routes/_errors/bad-request";
 
 class BatchController {
     constructor(private batchService: BatchService, private productService: ProductService, private validator: ValidationService) { }
@@ -19,12 +20,10 @@ class BatchController {
     public fetchId = async (req: FastifyRequest, res: FastifyReply) => {
         const { batchId } = req.params as { batchId: string };
 
+        await this.validator.validateBatch(batchId);
         const data = await this.batchService.fetchId(batchId);
 
-        if (!data) {
-            throw new Error('Batch not found!');
-        }
-        const batchData = batchDataFormatter(data);
+        const batchData = batchDataFormatter(data as BatchData);
 
         res.status(200).send({ batchData })
     }
@@ -35,13 +34,11 @@ class BatchController {
         const productValidations = products.map(product => this.validator.validateProduct(product.productId));
         await Promise.all(productValidations);
 
-        const today = new Date();
-        arrivalDate?.setHours(0, 0, 0, 0);
-        today.setHours(0, 0, 0, 0);
-        if (arrivalDate && arrivalDate > today) {
-            throw new Error('Cant register a batch that was not delivered');
+        if (arrivalDate !== undefined) {
+            this.validator.validateBatchArrivalDate(arrivalDate);
         }
 
+        const today = new Date();
         const { id: batchId } = await this.batchService.createBatch(supplierId, arrivalDate || today);
 
         const batchProductCreation = products.map(({ productId, price, quantity }) => {
@@ -57,4 +54,4 @@ class BatchController {
     }
 }
 
-export default BatchController
+export default BatchController;
