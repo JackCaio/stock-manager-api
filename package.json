@@ -5,13 +5,16 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx watch --env-file .env src/server.ts",
-    "build": "",
+    "build": "tsup src --format esm",
+    "prestart": "npm run build",
+    "start": "node dist/server.mjs",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio"
   },
   "devDependencies": {
     "@types/node": "20.12.7",
     "prisma": "5.12.1",
+    "tsup": "^8.1.0",
     "tsx": "4.7.2",
     "typescript": "5.4.5"
   },
